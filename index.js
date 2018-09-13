@@ -3,6 +3,8 @@ import Mta from 'mta-gtfs'
 import 'dotenv/config'
 import mcache from 'memory-cache'
 import _ from 'lodash'
+import distanceInWordsToNow from 'date-fns/distance_in_words_to_now'
+import differenceInMinutes from 'date-fns/difference_in_minutes'
 
 const app = express()
 const mta = new Mta({
@@ -31,6 +33,15 @@ const cache = (duration) => {
 const feedRegex = '1|26|16|21|2|11|31|36|51'
 const directionRegex = 'N|S'
 
+const decorateDeparture = d => {
+    const arrivalTime = new Date(d.arrivalTime * 1000)
+    return {
+        ...d,
+        arrivalInMinutes: differenceInMinutes(arrivalTime, new Date()),
+        arrivalText: distanceInWordsToNow(arrivalTime)
+    }
+}
+
 app.get(`/schedule/:feedId(${feedRegex})/stop/:stopId/direction/:direction(${directionRegex})`, cache(10), (req, res, next) => {
     const stopId = req.params.stopId
     const feedId = req.params.feedId
@@ -40,7 +51,8 @@ app.get(`/schedule/:feedId(${feedRegex})/stop/:stopId/direction/:direction(${dir
             const scheduleObj = schedule["schedule"]
             if(scheduleObj) {
                 const nextDepartures = scheduleObj[stopId][direction]
-                res.send(nextDepartures)
+                const mappedDepartures = _.map(nextDepartures, decorateDeparture)
+                res.send(mappedDepartures)
             } else {
                 res.send({})
             }
