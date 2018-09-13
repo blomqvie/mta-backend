@@ -40,7 +40,7 @@ app.get(`/schedule/:feedId(${feedRegex})/stop/:stopId/direction/:direction(${dir
             const scheduleObj = schedule["schedule"]
             if(scheduleObj) {
                 const nextDepartures = scheduleObj[stopId][direction]
-                res.send(_.take(nextDepartures, 4))
+                res.send(nextDepartures)
             } else {
                 res.send({})
             }
