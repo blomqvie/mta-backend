@@ -2,6 +2,7 @@ import express from 'express'
 import Mta from 'mta-gtfs'
 import 'dotenv/config'
 import mcache from 'memory-cache'
+import _ from 'lodash'
 
 const app = express()
 const mta = new Mta({
@@ -27,13 +28,23 @@ const cache = (duration) => {
     }
 }
 
+const feedRegex = '1|26|16|21|2|11|31|36|51'
+const directionRegex = 'N|S'
 
-app.get('/schedule/:feedId/stop/:stopId/direction/:direction', cache(30), (req, res, next) => {
+app.get(`/schedule/:feedId(${feedRegex})/stop/:stopId/direction/:direction(${directionRegex})`, cache(30), (req, res, next) => {
     const stopId = req.params.stopId
     const feedId = req.params.feedId
     const direction = req.params.direction
     mta.schedule(stopId, feedId)
-        .then(schedule => {res.send(schedule["schedule"][stopId][direction])})
+        .then(schedule => {
+            const scheduleObj = schedule["schedule"]
+            if(scheduleObj) {
+                const nextDepartures = scheduleObj[stopId][direction]
+                res.send(_.take(nextDepartures, 4))
+            } else {
+                res.send({})
+            }
+        })
         .catch(next)
 })
 
