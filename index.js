@@ -31,7 +31,7 @@ const cache = (duration) => {
 const feedRegex = '1|26|16|21|2|11|31|36|51'
 const directionRegex = 'N|S'
 
-app.get(`/schedule/:feedId(${feedRegex})/stop/:stopId/direction/:direction(${directionRegex})`, cache(30), (req, res, next) => {
+app.get(`/schedule/:feedId(${feedRegex})/stop/:stopId/direction/:direction(${directionRegex})`, cache(10), (req, res, next) => {
     const stopId = req.params.stopId
     const feedId = req.params.feedId
     const direction = req.params.direction
